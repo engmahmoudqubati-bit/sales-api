@@ -1,9 +1,10 @@
-require("dotenv").config()
 const express = require("express")
 const { Pool } = require("pg")
 const cors = require("cors")
 
 const app = express()
+
+console.log("DATABASE_URL exists:", !!process.env.DATABASE_URL)
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -13,6 +14,10 @@ const pool = new Pool({
 app.use(cors())
 app.use(express.json())
 
+app.get("/", (req, res) => {
+  res.json({ status: "API is running!" })
+})
+
 app.get("/api/sales", async (req, res) => {
   try {
     const { rows } = await pool.query("SELECT * FROM sales ORDER BY year, month, day")
@@ -21,10 +26,6 @@ app.get("/api/sales", async (req, res) => {
     console.error("DB Error:", err.message)
     res.status(500).json({ error: err.message })
   }
-})
-
-app.get("/", (req, res) => {
-  res.json({ status: "API is running!" })
 })
 
 const PORT = process.env.PORT || 8080
