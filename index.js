@@ -3,42 +3,33 @@ const { Pool } = require("pg")
 const cors = require("cors")
 
 const app = express()
-
-console.log("Starting API...")
-console.log("DATABASE_URL:", process.env.DATABASE_URL ? "Found" : "NOT FOUND")
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
-  connectionTimeoutMillis: 10000,
-})
-
-// Test database connection on startup
-pool.connect((err, client, release) => {
-  if (err) {
-    console.error("Database connection error:", err.message)
-  } else {
-    console.log("Database connected successfully!")
-    release()
-  }
-})
-
 app.use(cors())
 app.use(express.json())
 
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+})
+
 app.get("/", (req, res) => {
-  res.json({ status: "API is running!" })
+  res.json({ status: "ok" })
 })
 
 app.get("/api/sales", async (req, res) => {
   try {
-    const { rows } = await pool.query("SELECT * FROM sales ORDER BY year, month, day")
-    res.json(rows)
+    const result = await pool.query("SELECT * FROM sales")
+    res.json(result.rows)
   } catch (err) {
-    console.error("Query error:", err.message)
+    console.error(err)
     res.status(500).json({ error: err.message })
   }
 })
 
+process.on("uncaughtException", (err) => {
+  console.error("Uncaught:", err.message)
+})
+
 const PORT = process.env.PORT || 8080
-app.listen(PORT, () => console.log(`API running on port ${PORT}`))
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Running on ${PORT}`)
+})
