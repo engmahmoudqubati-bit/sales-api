@@ -3,7 +3,8 @@ const { Pool } = require("pg")
 const cors = require("cors")
 
 const app = express()
-app.use(cors())
+
+app.use(cors({ origin: "*" }))
 app.use(express.json())
 
 const pool = new Pool({
@@ -12,24 +13,19 @@ const pool = new Pool({
 })
 
 app.get("/", (req, res) => {
-  res.json({ status: "ok" })
+  res.status(200).json({ status: "ok" })
 })
 
 app.get("/api/sales", async (req, res) => {
   try {
-    const result = await pool.query("SELECT * FROM sales")
-    res.json(result.rows)
+    const { rows } = await pool.query("SELECT * FROM sales")
+    return res.status(200).json(rows)
   } catch (err) {
-    console.error(err)
-    res.status(500).json({ error: err.message })
+    return res.status(500).json({ error: err.message })
   }
 })
 
-process.on("uncaughtException", (err) => {
-  console.error("Uncaught:", err.message)
-})
-
-const PORT = process.env.PORT || 8080
+const PORT = parseInt(process.env.PORT) || 8080
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Running on ${PORT}`)
+  console.log(`Server listening on 0.0.0.0:${PORT}`)
 })
