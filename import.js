@@ -1,10 +1,12 @@
+require('dotenv').config()
 const { Pool } = require("pg")
 const fs = require("fs")
 const path = require("path")
 const Papa = require("papaparse")
-require("dotenv").config()
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL })
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL
+})
 
 async function importCSV(filePath) {
   try {
@@ -28,7 +30,7 @@ async function importCSV(filePath) {
           const batch = rows.slice(i, i + batchSize)
           const values = []
           const placeholders = batch.map((row, j) => {
-            const base = j * 13
+            const base = j * 11
             values.push(
               row.LOCATION_DESC?.trim(),
               row.BARCODE?.trim(),
@@ -38,17 +40,15 @@ async function importCSV(filePath) {
               row.SCN_DESC?.trim(),
               row.UNIT_DESC?.trim(),
               parseFloat(row.QTY) || 0,
-              parseFloat(row.UNIT_PRICE) || 0,
               parseFloat(row.NET_PRICE) || 0,
               parseInt(row.MONTH) || 0,
-              parseInt(row.YEAR) || 0,
-              parseInt(row.DAY) || 0
+              parseInt(row.YEAR) || 0
             )
-            return `($${base+1},$${base+2},$${base+3},$${base+4},$${base+5},$${base+6},$${base+7},$${base+8},$${base+9},$${base+10},$${base+11},$${base+12},$${base+13})`
+            return `($${base+1},$${base+2},$${base+3},$${base+4},$${base+5},$${base+6},$${base+7},$${base+8},$${base+9},$${base+10},$${base+11})`
           }).join(",")
 
           await pool.query(
-            `INSERT INTO sales (location_desc,barcode,itm_code,itm_desc,scn_code,scn_desc,unit_desc,qty,unit_price,net_price,month,year,day)
+            `INSERT INTO sales (location_desc,barcode,itm_code,itm_desc,scn_code,scn_desc,unit_desc,qty,net_price,month,year)
              VALUES ${placeholders}`,
             values
           )
@@ -69,7 +69,7 @@ async function importCSV(filePath) {
 
 const filePath = process.argv[2]
 if (!filePath) {
-  console.error("❌ Please provide CSV file path: node import.js path/to/file.csv")
+  console.error("❌ Please provide CSV file path")
   process.exit(1)
 }
 
