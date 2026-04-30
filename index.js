@@ -18,8 +18,7 @@ app.get("/", (req, res) => {
 
 app.get("/api/sales", async (req, res) => {
   try {
-    const limit  = Math.min(parseInt(req.query.limit)  || 10000, 10000)
-    const offset = parseInt(req.query.offset) || 0
+const limit = Math.min(parseInt(req.query.limit) || 10000, 100000)    const offset = parseInt(req.query.offset) || 0
     const month  = req.query.month
     const branch = req.query.branch
 
